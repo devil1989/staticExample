@@ -1,0 +1,129 @@
+//内容列表
+.list-item-wrapper{
+    .list-item{
+        position: relative;
+        padding-bottom: 6px;
+        margin-bottom: 6px;
+        border-bottom: 1px solid #e3e3e3;
+        height:84px;
+        overflow: hidden;
+        .list-item-mask{
+            background: url("../../../../common/assets/img/loading.png") center center no-repeat;
+            background-size:40px;
+            height:100%;
+            width: 100%;
+            position: absolute;
+            top: 0px;
+            left:0px;
+            opacity:0.8;
+            background-color: #e3e3e3;
+        }
+        .list-item-inner{
+            display:flex;
+            .list-content{
+                cursor: pointer;
+                margin-right: 50px;
+                flex-grow:9;
+                width:0;
+                position:relative;
+                height:84px;
+                .list-content-desc {
+                    margin-right: 12px;
+                    font-size:15px;
+                }
+                .list-content-date{
+                    margin-top: 2px;
+                    font-size:12px;
+                    color:#A2A2A2;
+                }
+                p{
+                    margin-right:10px;
+                    height:43px;
+                    text-indent:0px;
+                    overflow:hidden;
+                    text-overflow: ellipsis;
+                    // white-space: nowrap;
+                    width:100%;
+                    span{
+                        position: absolute;
+                        right:-10px;
+                        top:63px;
+                    }
+                }
+                .list-content-desc-wrapper{
+                    white-space: nowrap;
+                    overflow: hidden;
+                    height:21px;
+                    padding:10px 0px;
+                }
+            }
+            .list-extra{
+                flex-grow:1;
+                .list-extra-inner{
+                    // margin-right: 0px;
+                }
+            }
+        }
+    }
+}
+.ant-tabs-tabpane-active{
+    position:relative;
+}
+.person-article-loading{
+    position:absolute;
+    top: 0;
+    left:0;
+}
+
+.search-list-wrapper{
+    overflow:hidden;
+    h3{
+        height: 40px;
+        line-height: 40px;
+        border-top: 1px solid #e3e33e;
+    }
+    .list-item-image{
+        float: left;
+        width: 84px;
+        height:100%;
+        background:url("../../../../common/assets/img/write.png") center center no-repeat;
+        background-size:64px;
+    }
+    .list-item-inner-content{
+        padding-left: 20px;
+        height:100%;
+        overflow:auto;
+        .list-item-username{
+            height:34px;
+            line-height: 34px;
+        }
+        .list-item-userinfo{
+            height:50px;
+            line-height: 50px;
+        }
+    }
+    .list-item-wrapper {
+        a{
+            font:14px/1.0em Arial;
+            color:#000;
+            text-decoration: none;
+            display:block !important;
+            height:100%;
+        }
+            
+    }
+        
+}
+
+
+.mix_list.search-list-wrapper{
+        .list-item-wrapper{
+        margin-left: 70px;
+    }
+    .list-item{
+        border-top:1px solid #e3e3e3;
+        border-bottom:none;
+    }
+}
+
+    

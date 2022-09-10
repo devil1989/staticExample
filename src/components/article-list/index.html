@@ -1,0 +1,52 @@
+<ul class="list-item-wrapper" @click="showArticleDisplayDrawer"> 
+  <!-- capture -->
+  <!-- 案例 -->
+  <!-- <li class="list-item">
+    <div class="list-item-inner">
+      <div class="list-content">
+        <h4 class="list-content-desc-wrapper">
+          <span class="list-content-desc">标题：技术分享</span>
+          <span>作者：jeffrey</span>
+        </h4>
+          
+        <p >文章大概内容文章大概内容文章大概内容文章大概内容文章大概内容文章大概内jeffreychenfdafdafd作为一个新时代的领军人物我有责任带领大家走兽幸福生活afdafd作为一个新时代的领军人物我有责任带领大家走兽幸福生活afdafd作为一个新时代的领军人物我有责任带领大家走兽幸福生活afdafd作为一个新时代的领军人物我有责任带领大家走兽幸福生活概内容文章大概内容文章大概内容文章大概内容文章大概内容文章大概内jeffreychenfdafdafd作为一个新时代的领军人物我有责任带领大家走兽幸福生活afdafd作为一个新时代的领军人物我有责任带领大家走概内容文章大概内容文章大概内容文章大概内容文章大概内容文章大概内jeffreychenfdafdafd作为一个新时代的领军人物我有责任带领大家走兽幸福生活afdafd作为一个新时代的领军人物我有责任带领大家走概内容文章大概内容文章大概内容文章大概内容文章大概内容文章大概内jeffreychenfdafdafd作为一个新时代的领军人物我有责任带领大家走兽幸福生活afdafd作为一个新时代的领军人物我有责任带领大家走<span>...</span>
+        </p>
+      </div>
+      
+      <ul class="list-extra">
+        <li><span class="list-extra-inner">文章点赞数量 ：</span><span>5</span></li>
+        <li><span class="list-extra-inner">文章收藏数量 ：</span><span>5</span></li>
+        <li><span class="list-extra-inner">文章评论数量 ：</span><span>5</span></li>
+        <li><span class="list-extra-inner">文章转发数量 ：</span><span>5</span></li>
+      </ul>
+    </div>
+  </li> -->
+
+  <li class="list-item" v-if="personalArticle.data.length" v-for="item in personalArticle.data" :data-key-id="item.id" >
+    <div class="list-item-mask" v-if="item.showLoading?true:false"></div>
+    <!-- 只有在自己的个人中心的收藏tab，才会展示取消收藏 -->
+    <div class="right list-item-right"  v-if="activeKey.val=='fav'&&userInfo.isLogin&&userInfo.isSelf"  >
+      <a-button :data-key="item.id"  class="attemtion-active" type="primary" @click.stop="removeCollection" >
+              取消收藏
+      </a-button>
+    </div>
+    <div class="list-item-inner"  >
+      <div class="list-content">
+        <h4 class="list-content-desc-wrapper">
+          <span class="list-content-desc">{{item.title}}</span>
+          <span class="list-content-date">{{item.time}}</span>
+        </h4>
+          
+        <p >{{item.content}}<span>...</span>
+        </p>
+      </div>
+      
+      <ul class="list-extra" >
+        <li><span class="list-extra-inner">点赞 ：</span><span>{{item.extraInfo.fav?item.extraInfo.fav.length:0}}</span></li>
+        <li><span class="list-extra-inner">收藏 ：</span><span>{{item.extraInfo.collect?item.extraInfo.collect.length:0}}</span></li>
+        <li><span class="list-extra-inner">评论 ：</span><span>{{item.extraInfo.comment?item.extraInfo.comment.length:0}}</span></li>
+        <li><span class="list-extra-inner">转发 ：</span><span>{{item.extraInfo.relay?item.extraInfo.relay.length:0}}</span></li>
+      </ul>
+    </div>
+  </li>
+</ul>

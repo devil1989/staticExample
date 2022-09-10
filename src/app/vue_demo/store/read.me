@@ -1,0 +1,28 @@
+vuex其实比redux简单，redux里面有一大堆乱七八糟套来套去的东西
+
+state：存放state数据
+getters：获取store的数据state的入口，getters一般放在computed里面
+mutation：操作store里面的state数据的唯一入口，其他都不能操作，它是同步操作数据
+action：异步操作数据，其实就是在action里面执行ajax等异步操作，然后在回调函数里面调用commit函数，
+		commit操作就是调用mutation里面的方法来修改state
+modules：其实就是把一个单页或者模块里面用到的所有state，getters，mutation，action的包在一个对象里面
+		用于免除“模块或者单页”之间的数据重叠，各自拥有独立的数据和操作，
+		前提是这个模块是独立的，和其他模块的渲染没有数据依赖，不然就没有必要划分到不同的module
+		module的结构：{
+			"模块1"：{
+				state,
+				getters,
+				mutation,
+				action
+			},
+			"模块2"：{
+				state,
+				getters,
+				mutation,
+				action
+			}
+		}
+
+基本和redux差不多，redux把action和mutation统一合并到了action里面，其实真没必要把同步和异步区分开来，实现完全是一样的
+异步操作里面完全可以涵盖同步操作，只是中间多了一个异步操作而已
+

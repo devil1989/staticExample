@@ -1,0 +1,68 @@
+<div class="safe_info_wrapper" v-if="userInfo.isLogin" >
+        <!-- <div class="needMouse">
+            <span class="left">通过验证码修改绑定手机号</span>
+            <a-input
+              class="left mr6"
+              :value="userInfo.isEdit?userInfo.data.phone.val:userInfo.phone"
+              @change="changePhoneNumber"
+              :placeholder="userInfo.isEdit?'请输入手机号':''"
+              :disabled="!userInfo.isEdit"
+            />
+            <a-input
+              class="left mr6"
+              :value="userInfo.isEdit?userInfo.data.phone.val:userInfo.phone"
+              @change="changePhoneNumber"
+              :placeholder="userInfo.isEdit?'请输入验证码':''"
+              :disabled="!userInfo.isEdit"
+            />
+            <a-button v-if="!userInfo.isEdit" class="left" type="primary" @click="editUserInfo"   >
+                获取验证码
+            </a-button>
+        </div> -->
+
+        <!-- <p  class="title_desc">通过原密码来修改密码：</p> -->
+        <a-form-item class="unit_item left" :validate-status="safeInfo.data.oldPwd.status" :help="safeInfo.data.oldPwd.helpInfo" >
+            <a-input
+                :value="safeInfo.data.oldPwd.val"
+                class="left unit_item"
+                @change="changeOldPwd"
+                :placeholder="'请输入原密码'"
+            />
+        </a-form-item>
+        <a-form-item class="unit_item left" :validate-status="safeInfo.data.newPwd.status" :help="safeInfo.data.newPwd.helpInfo" >
+            <a-input
+                :value="safeInfo.data.newPwd.val"
+                class="left unit_item "
+                @change="changeNewPwd"
+                :placeholder="'请输入新密码'"
+            />
+        </a-form-item>
+
+        <a-button class="unit_item left" type="primary" @click="modifyPsd"   >
+            修改密码
+        </a-button>
+
+
+        <!-- <div class="needMouse">
+            <span  class="left">通过验证码来修改密码：</span>
+            <a-input
+              class="left mr6"
+              :value="userInfo.isEdit?userInfo.data.phone.val:userInfo.phone"
+              @change="changePhoneNumber"
+              :placeholder="userInfo.isEdit?'请输入新密码':''"
+              :disabled="!userInfo.isEdit"
+            />
+            <a-input
+              class="left mr6"
+              :value="userInfo.isEdit?userInfo.data.phone.val:userInfo.phone"
+              @change="changePhoneNumber"
+              :placeholder="userInfo.isEdit?'请输入原密码':''"
+              :disabled="!userInfo.isEdit"
+            />
+            <a-button v-if="!userInfo.isEdit" class="left" type="primary" @click="editUserInfo"   >
+                提交
+            </a-button>
+        </div> -->
+</div>
+
+

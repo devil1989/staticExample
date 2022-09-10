@@ -1,0 +1,19 @@
+//react+redux+阿里的antd组件库
+antd版本：3.26.19
+react和react-dom版本：16.14.0
+redux:4.2.0
+react-redux：7.0
+redux-thunk:2.4.1
+
+
+//vue+vuex+阿里的ant-design-vue组件库
+ant-design-vue:1.7.8
+vue:2.6.14
+vuex:3.0.1
+
+
+兼容IE9+的版本浏览器
+
+富文本编辑器版本：
+"@wangeditor/editor": "^5.1.1",
+"@wangeditor/editor-for-vue": "^1.0.2",

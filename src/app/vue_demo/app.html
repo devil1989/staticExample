@@ -1,0 +1,12 @@
+<!-- 注意，template里面的单纯的数据传递，不能直接获取里面的属性 -->
+
+<div>
+	<ul>
+		<li v-for="p in persons" :key="persons.indexOf(p)" >
+			<p @click="setName">name:{{p.name}}</p>
+			<p @click="setAge">age:{{p.age}}</p>
+			<p>sex:{{p.sex}}</p>
+		</li>
+	</ul>
+	<componentA :ref="'cpa'" :options="componentData" @before-create="beforeComponentACreated" @after-click="afterClickComponentA" > </componentA>
+</div>

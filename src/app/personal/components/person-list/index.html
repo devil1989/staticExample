@@ -1,0 +1,27 @@
+  
+<div class="search-list-wrapper" :class="personList.data&&personList.data.length?'mix_list':''">
+
+  <!-- 粉丝列表 -->
+  <ul class="list-item-wrapper" >
+    <li class="list-item" v-if="personList.data" v-for="item in personList.data" :data-key-id="item._id" >
+      <div class="right list-item-right" v-if="userInfo.isLogin&&userInfo.isSelf">
+        <a-button :data-key="item._id" :data-name="item.name"  class="attemtion-active" type="primary" @click="removeAttention" >
+                {{(activeKey.val=="attention")?"取消关注":"移除粉丝"}}
+        </a-button>
+      </div>
+      <a class="list-item-inner" :href="'/recommend/personal?id='+(item.id)" target="_blank" >
+          <div class="list-item-image" :style="'background-image:url('+item.userPic+')'">
+          </div>
+          <div class="list-item-inner-content">
+            <p class="list-item-username">
+              {{item.name}}
+            </p>
+            <p class="list-item-userinfo">
+              粉丝 ：{{item.fansNum}}
+            </p>
+          </div>
+      </a>
+    </li>
+  </ul>
+
+</div>
