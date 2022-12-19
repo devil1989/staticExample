@@ -1,8 +1,0 @@
-<div v-if="userInfo.isLogin" class="header_el user_cneter" @mouseenter="showUserInfoPop" @mouseleave="hideUserInfoPop"  :style="'background-image:url('+userInfo.userPic+')'" >
-    <div class="user_info_wrapper">
-        <div  :class="userInfo.showUserPop?'showInfo user_info_list':'user_info_list' ">
-            <p class="write_article hover_state" @click="logout">退出登录</p>
-            <p class="write_tiptalk hover_state" @click="goPersonalCenter">个人中心</p>
-        </div>
-    </div>
-</div>
