@@ -1,0 +1,117 @@
+
+    
+.wrapper{
+	width:100%;
+	overflow: hidden;
+
+	header{
+		background-color: #1369bf;
+		height: 58px;
+		align-items: center;
+		width: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		h1.header_el{
+    		margin-left: 9px;
+		}
+		.header_el{
+			width:auto;
+			padding:0px 20px;
+			margin-right:30px;
+			// flex-grow:1;
+		}
+		.user_cneter.header_el{
+		    display: flex;
+    		// align-items: center;
+			// width: auto;
+		    // padding: 1px 10px;
+		    // border-radius: 40px;
+		    padding:3px;
+		    cursor:pointer;
+	    	height: 40px;
+	    	width: 40px;
+	    	border-radius:10px;
+	    	border:1px solid #e3e3e3;
+	    	background:url("../../common/assets/img/write.png") center center no-repeat;
+	    	background-color: #fff;
+	    	background-size:40px;
+	    	font-size: 23px;
+			margin-top: 3px;
+		}
+		.header_el.global_search{
+			flex-grow:10;
+			padding:0px;
+			text-align: center;
+		}
+
+		.global_search{
+			input{
+				border-radius:0px;
+				border-left:0px;
+			}
+		}
+		.search_select_options{
+			border-right:1px solid #e3e3e3;
+			border-top-right-radius: 0px;
+			border-bottom-right-radius: 0px;
+			.ant-select-selection{
+				border-right:0px;
+				border-top-right-radius: 0px;
+				border-bottom-right-radius: 0px;
+			}
+		}
+		.search_select_options:after{
+			content:"ˇ";
+			position: absolute;
+			top: 5px;
+			right: 5px;
+			font-size:30px;
+			cursor:pointer;
+		}
+
+	}
+
+	.inner_content{
+		padding: 30px;
+		.tab_content{
+			width: 100%;
+		}
+
+		.detai_content {
+			.ant-list-item {
+				padding: 0px;
+				display:inline-block;
+				width:100%;
+				flex-grow:1;
+			}
+		}
+	}
+	
+}
+
+.title_home{
+	cursor: pointer;
+}
+
+
+// .ant-tabs-tabpane{
+// 	overflow:hidden;
+// 	background-color: red;
+// 	min-height: 100px;
+// }
+// .ant-tabs-bar{
+// 	background-color: #e3e3e3;
+// }
+// .ant-tabs-bar:after{
+// 	clear:both;
+// }
+
+
+//tab切换的时候，文字位置偏移，因为这个transition的缘故
+.ant-tabs .ant-tabs-top-content > .ant-tabs-tabpane, .ant-tabs .ant-tabs-bottom-content > .ant-tabs-tabpane{
+	transition: none;
+}
+.ant-tabs-tabpane{
+	min-height:100px;
+}

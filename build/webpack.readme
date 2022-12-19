@@ -1,0 +1,14 @@
+webpack5:
+    loader相关：
+        1.图片连接的处理:asset代替url-load【图片转base64+file-loader】，file-loader，row-loader
+        2.样式loader:style-loader css-loader post-css-loader sass-loader 
+        3.html-loader:html加载
+        4.js的loader:用于ts,es6等转化，用babel-loader
+
+    插件：
+        1. css提取：mini-css-extract-plugin 【webpack5】 ；extract-text-webpack-plugin 【webpack4】
+        2. html插件，生成插入特定js和css连接的插件：html-webpack-plugin【】
+        3. 拷贝插件：copy-webpack-plugin
+        4. js压缩插件：terser-webpack-plugin【额外的，也有自带的压缩】
+        5. 热替换插件：webpack.HotModuleReplacementPlugin()+, // HMR插件将HMR Runtime代码嵌入到bundle中，能够操作APP代码，完成代码替换
+        6. dll优化插件： webpack.DllPlugin 得到manifest.json; new webpack.DllReferencePlugin执行的时候访问json，如果存在就不加载编译

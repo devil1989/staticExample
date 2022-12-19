@@ -1,0 +1,39 @@
+  <!-- 登录弹框 -->
+      <a-drawer
+        title="登录"
+        :width="720"
+        :visible="loginForm.visible"
+        :body-style="{ paddingBottom: '80px' }"
+        @close="closeLoginDrawer"
+      >
+        <a-form :form="loginFormElement" layout="vertical" hide-required-mark>
+              <div class="form-item-wrapper">
+                <a-form-item class="form-item-inner" label="帐号" :validate-status="loginForm.data.phone.status" :help="loginForm.data.phone.helpInfo" >
+                  <a-input
+                    :value="loginForm.data.phone.val"
+                    @change="changeLoginPhoneNum"
+                    placeholder="请输入手机号"
+                  />
+                </a-form-item>
+
+                <a-form-item class="form-item-inner" label="密码" :validate-status="loginForm.data.passward.status" :help="loginForm.data.passward.helpInfo" >
+                  <a-input-password 
+                    :value="loginForm.data.passward.val"
+                    @change="changeLoginPasswardNum"
+                    @keyup.enter="submitLogin"
+                    placeholder="请输入密码"
+                  />
+                </a-form-item>
+              </div>
+        </a-form>
+        <div
+          class="right"
+        >
+          <a-button :style="{ marginRight: '8px' }" :disabled="loginForm.data.submitState.disableBtn" @click="closeLoginDrawer">
+            取消
+          </a-button>
+          <a-button :ref="'submitbtn'" type="primary" :disabled="loginForm.data.submitState.disableBtn" @click="login">
+            {{loginForm.data.submitState.submitText}}
+          </a-button>
+        </div>
+      </a-drawer>

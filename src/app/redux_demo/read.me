@@ -1,0 +1,1075 @@
+//页面文件结构
+app.js:html页面的入口文件，包含了ReactDOM,container,store,redux的Provider，生成一个React界面
+	ReactDOM+redux的Provider，生成一个容器，容器里面传入需要的页面组件container和页面的store
+
+container.js:页面入口，放在app.js里面的入口，对应一个页面 （其实是个多个component组件的集合，这个组件集合是通过redux的connect封装而成，否则无法同步父子兄弟components之间的state）
+	action.js: 包含了ajax请求函数，因为dispatch（action）的时候，如果异步的话，需要在action中传入对应的ajax请求
+		model.js:ajax请求获取对应参数
+	componnets：该页面需要的组件
+
+store.js:用redux封装的好的store，绑定reduce
+	reducer.js：获取reducer文件夹中的所有reduce文件，用redux把所有resucer合并起来,可以按照function来拆分成各个reduce
+	reducer文件夹中的reduce：真正的reducer，和多个action绑定，每个action都有对应的type和对应执行的最新的data（这个data用于更新state），reducer中执行对应的state更新，用objectAssign({}, state, action.data);
+
+
+
+react+redux相关文章：//redux可用可以不用，简单的页面就不用，复杂的页面就用，自己斟酌
+	同步：http://www.ruanyifeng.com/blog/2016/09/redux_tutorial_part_one_basic_usages.html
+	异步：http://www.ruanyifeng.com/blog/2016/09/redux_tutorial_part_two_async_operations.html
+
+
+
+添加一个组件的流程是：
+	1.component中添加新组件，通过静态数据和render来展示组件，不涉及逻辑
+	2.container中引入组件
+	3.action中添加一个改组件相对应的action
+		如果是同步的，那只要添加action的名称即可
+		如果是异步，不但要添加名称，还得添加一个function，function里面返回一个dispatch =>(){};该dispatch是被封装过的，里面放些ajax请求，ajax的回调函数中用dispatch(ajax返回数据生成的新state)
+	4.reducer中添加和action对应的reducer函数，函数里面更新对应的state
+	5.UI就自动更新了
+
+
+
+
+
+/********************************************************************** redux详细讲解 **********************************************************************/
+
+
+//redux详解(用于管理state):redux是用store.dispatch(action)来执行对应的action，从而自动调用对应的reducer来更新state，改变UI；如果不用redux，那么需要通过this.setState方法来修改state，调用该方法后，react会自动根据state来改变组件的UI
+
+action: 携带了数据的普通js对象，action creator返回的值是这个action类型的对象。然后通过store.dispatch(action creator())进行分发//store.dispatch是同步的
+		redux修改了store.dispatch,所以redux中调用的是store.dispatch(actionCreator函数)，里面不再是action对象
+
+reducer:是个state的生成函数，通过旧的state，和对应的action行为，返回一个新的state
+
+		//重点来了，什么时候用reducer？，reducer不需要额外自己调用，只要绑定对应的state和action，
+		//store在调用dispache(action)的时候，会自动执行reduce(state,action)//action是dispache中传入的action，state是自己当前的state，可以通过store.getState()获得
+		//
+
+		
+
+store:中心，获取store，生成新store，store监听等
+		getState：获取store的state
+		subscribe：监听store
+		dispache：更新store
+			state只能通过dispatch(action)来执行更新，更新逻辑由reducer来执行
+					action是一个对象，用于描述一个行为，通常在dispache中，用的是action生成函数，例如dispache（todoAction()）
+					todoAction：是返回action的一个函数而已，传入额外的属性，返回对应的action对象（该action对象可能是一个方法，也可能是一个对象）
+
+middleware:发送action和action到达reducer之间的第三方扩展（为了处理异步问题而引入的）
+
+
+
+流程：store.dispatch(action) --> reducer(state, action) --> final state --> 根据最新的state来更新组件UI
+	//redux中，store和action之间的关联是store.dispatch(action)绑定的
+	//redux中，store和reducer之间的关联是在store创建的时候就绑定了的
+
+	执行store.dispatch(actionCreator())后，会自动执行reducer，
+	reduce包含2个参数，当前的state和对应的action，会根据当前的state和对应的action，返回最新的state，这里面具体怎么实现的逻辑需要自己写
+
+	四要素：component,action,reducer,state
+		component(组件)触发事件，事件中会执行store.dispatch(action)，然后reducer会执行这个action，生成新的state，然后根据新的state来重绘component
+
+
+备注：全局只有一个store，每个控件对应store中的某个属性，reducer需要和store的属性绑定来更新store中对应的属性，如果reducer绑定了多个action，那么根据action的不同，就会产生不同的state，
+	  reducer有多个，一般会用combineReducers来合成一个综合的reducer，这个综合的reducer就是上面说的绑定多个action（即能够修改多个store中的属性）的reducer，reduce合成//一般都是自己写一个集成的reduce函数
+
+
+
+
+//拓展属性
+	import { createStore, applyMiddleware,bindActionCreators } from 'redux'
+	import { connect,Provider } from 'react-redux'
+	import thunk from 'redux-thunk'
+
+	createStore(reducer, []):生成store，第二个参数可选，是默认的store
+	Provider:组件最外层，管理store中的state的状态；用到了React的Context特性，比如React.createContext,Context.Provider等，Provider传入数据，子组件都可以获取数据，并且传入数据变更，子组件也会自动重新计算虚拟DOM然后更新
+			 当 Provider 的 value 值发生变化时，它内部的所有消费组件都会重新渲染。Provider 及其内部 consumer 组件都不受制于 shouldComponentUpdate 函数，因此当 consumer 组件在其祖先组件退出更新的情况下也能更新。
+
+	applyMiddleware:来自redux可以包装 store 的 dispatch()【该方法可以生成对应的store】,他和thunk一起使用
+	thunk：让dispatch接受function作为参数，而不仅仅只能接受action对象;这样做是为了处理dispatch的异步请求，dispatch(action)是同步的
+
+	connect:把state的counter值绑定到props上，把action创建函数绑定到props上（用到了bindActionCreators），返回绑定后的组件；用于数据传递，并且使得store和组件之间解耦
+	bindActionCreators:把action创建函数绑定到props上，并且让action函数支持异步。
+
+	dispatch的异步问题（支持了ajax）：通过applyMiddleware，thunk，bindActionCreators解决了
+	组价嵌套调用的时候，state更改
+
+
+
+this.props和state区别：
+	state:组件状态树，能决定组件的UI展示，state变化是会更新DOM（getInitialState:获取初始的默认state）调用this.setState改变state
+	props：属性传递，是父组件传递给子组件的属性，单向的（getDefaultProps:获取初始的默认props）；this.props.children获取所有子组件
+
+	props 就是组件的属性，由外部通过 JSX 属性传入设置，一旦初始设置完成，就可以认为 this.props 在该组件内部是不可更改的【组件外部修改，导致内部同步更新，就没关系，纯函数的概念】
+	所以不要轻易在组件内更改设置 this.props 里面的值（虽然对于一个 JS 对象你可以做任何事）。state 是组件的当前状态，
+	可以把组件简单看成一个“状态机”，根据状态 state 呈现不同的 UI 展示。一旦状态（数据）更改，
+	组件就会自动调用 render 重新渲染 UI，这个更改的动作会通过 this.setState 方法来触发。
+
+
+
+
+//redux到底做了那些事情
+
+1.用store的状态树统一管理各个组件的state，store对应改变，就会map到对应的用到这个state属性的组件，从而改变UI（最终调用this.setState，改变state；state改变后会自动调用state对应的dom元素的render函数）
+2.父组件修改props，如果子元素用了父元素的props的某些属性，redux会把props映射到对应的state，实现子组件和父组件同步的UI变更（不建议修改props，他是外部传入，一般不会改变）
+3.详细UI变更执行流程：
+	1.同步情况下：store.dispatch(action) --> reducer(state, action) --> final state --> 根据最新的state来更新组件UI
+				1.1 为了满足store.dispatch执行后，自动执行对应reducer，需要有一个store和reducer的关联
+					这个关联是在创建store的时候就已经定制好了的，Redux.createStore(reducer,initialState);
+	2.异步情况下：
+			2.1 正常dispatch只支持对象类型的action，需要改变store的dispatch方法，让他支持function，在function里面执行ajax，
+				在ajax的callback中调用原生的dispatch方法 ：applyMiddleware+thunk来修改store的dispatch;
+
+
+
+
+
+store.js: redux封装生成新的store的生成函数
+	1.1+2.1总和起来，就是创建store时候的执行代码，他生成了一个可以传入初始state的函数，该函数最终会封装传一个支持异步dispatch，而且关联了store和reducer的新store，具体如下，
+		import rootReducer from './reducer';
+		// import thunk from 'ReduxThunk';
+
+		const finalCreateStore = Redux.compose(
+		    Redux.applyMiddleware(ReduxThunk)
+		)(Redux.createStore);
+
+		export default function configureStore(initialState) {
+		    return finalCreateStore(rootReducer, initialState);
+		}
+
+
+action.js:ajax请求，写action的function 它和reducer一样，不需要做任何特殊处理
+
+	
+
+reducer.js:根据初始的state和action，生成新的state；注意action上挂了新添加的或者改变的state属性对象
+	用到了Redux.combineReducers,把多个reducer合成一个
+
+
+container.js: 页面的集成组件，把整个页面的所有组件封装成一个大组件，同时用ReactRedux.connect和mapStateToProps和mapDispatchToProps方式，
+			  解决各个组件的state和dispatch的集成，这样一旦一个组件改变，可以同步到其他组件，用统一的store中的信息来管理state
+			  详见container.js
+
+app.js :  页面入口，
+
+
+
+
+react学习指南：
+	0.dev环境下的工具安装：React Devtools
+
+	0.没有redux下的数据传递，把state对象存到祖先元素上，然后通过props的方式传递给子组件和子元素，实现数据传递，丛父元素那边传递事件给子元素，子元素不设置自己的state，数据完全通过父元素那边传入的props来渲染
+	  这样的好处就是，父元素数据修改了，如果这个数据传给了子元素，那么子元素自动会更新,因为子元素上绑定的数据是从父元素那边传过来的数据，有数据绑定
+
+	1.数据和事件绑定：事件的命名规范：代表事件的监听 prop 命名为 on[Event]，将处理事件的监听方法命名为 handle[Event] 这样的格式。
+		<button className="square" onClick={function() { alert('click'); }}>
+			{this.props.value}
+		</button>
+
+	2.数据：state，props；this.setState({"key":"value"});
+
+
+	3.数据改变和性能优化：
+
+
+	4.组件：React元素可以是DOM标签（<h1>{name}</h1>）;也可以是组件，组件分“函数组件”和“class组件”；
+
+		props:所有 React 组件都必须像纯函数一样保护它们的 props 不被更改。
+				什么是纯函数，就是不修改传入的变量的函数，也就是说，React组件的props不能在组件内部修改，只能通过外部传入来修改！！！！！！！！！！！！！
+
+		state:和props一样也是数据，但是它可以在组件内修改，实现组件内部的UI更新； state 是私有的，并且完全受控于当前组件，各个组件之间的state是相互独立的
+
+		关于state和props的使用：this.props 和 this.state 可能会异步更新，所以你不要依赖他们的值来更新下一个状态。比如
+		this.setState({//因为上一个状态的state的值虽然更新了，但是异步的，可能在调用this.setState的时候，state异步还没更新完成，所以依赖之前的state或者props可能出错，
+		  counter: this.state.counter + this.props.increment,
+		});
+		解决办法是： this.setState((state, props) => ({//传入一个函数，表示从上一个state异步更新完成后再执行，也可以用setTimeout(function(){},0)来实现等待上一个state或props更新完成
+					  counter: state.counter + props.increment
+					}));
+		不能用this.state.属性=value来直接修改，必须使用this.setState({"key":value});这个函数只会把传入的对象的key对于的值改变，state中原来存在的其他key仍然保持不变。
+		组件的state，只有自己可以访问，其他父组件，或子组件，都无法访问这个组件的state；为了让本组件的state修改能同步到其他组件，是通过根组件的state以props的形式向下传到下去，redux就是这么做的
+		通过把根组件的state以props的方式传给子组件，一层层传下去，所有的组件的props中用到的都是根组件的state，实现了所有组件和根组件的state的数据绑定，数据修改，绑定了该数据的组件就会重新执行render函数
+		子组件的数据可以通过根组件的state通过props传递过来【例如redux_demo中，用到的redux，就是通过ReactRedux.connect(mapStateToProps, mapDispatchToProps)(Container);把根组件Provider的store中的属性赋值给
+		props来传递到Container子组件，这个是redux实现数据管理的关键一步,把store的state绑定到根组件上】
+
+		状态提升：因为各个组件的state是相互独立的，如果两个组件用同一个属性，因为state是相互独立，所以要做到这两个组件同步这个属性，就得用到状态提升，就是用相同的变量，只要这个变量改变，两个组件中对应的值都会改变
+				  状态提升让多个组件共用相同变量，能减少很多bug，如果用函数去做组件之间的state同步，会有不少的bug，在redux中就是用了状态提升，把所有组件的属性全部统一映射同一个store里面，统一操作这个store来改变所有组件
+				  状态提升含义：在 React 中，将多个组件中需要共享的 state 向上移动到它们的最近共同父组件中，便可实现共享 state，这就是所谓的“状态提升”。
+				  				状态提升最简单的例子就是，根组件A，子组件b和c，公共的属性在根组件A的state上，然后把这个state值传给b和c组件的props，这样b和c就共享了a的state，
+				  				只要A的state改变，如果b和c的render的jsx中使用到的props的值是从A组件的state传导过来的，那么props也跟着变了，因为指向的是同一个值；
+				  				而b和c的return中的jsx语句中的props一旦改变，render就会自动重新执行；这里还有一个难点，因为子组件的props是不能在子组件自身上修改的，
+				  				所以根组件A得给b和c提供一个修改state的钩子，让b和c组件通过这个钩子函数，来修改根组件A的state，这样b和c任意组件调用这个钩子函数修改state，他们的UI都能同步更新到相同的值
+
+		state的选择和使用原则：state应该保持最小化，就是有的可以通过state计算衍生，那么就不要新添加一个state的key
+			该数据是否是由父组件通过 props 传递而来的？如果是，那它应该不是 state。
+			该数据是否随时间的推移而保持不变？如果是，那它应该也不是 state。
+			你能否根据其他 state 或 props 计算出该数据的值？如果是，那它也不是 state。
+
+
+
+
+		核心：state是每个组件【函数组件或class组件】的私人的状态，其他组件都无权访问，这个和store中的state要区分开来；store.getState()获取到的是所有组件的预定义state集合
+			  也就是说，这个返回的state并不包含其他子组件的state的数据结构，而是以返回的这个state数据结构为基础，把再数据传递的时候，把这个总体state中和子组件对应的字段找出来，赋值给子组件的props
+			  这样就实现了redux的state从根组件向子组件传递数据，实现了数据绑定。props属性一旦修改，就会重新执行render；同时对于所有组件中的数据的操控，统一通过redux中的store.dispatch()来实现
+			  也就是说，redux主要就做了2件事情：
+			  ！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+			  	1.把初始化的所有组件预定义的state结构合成到一起，从根组件传入store，用到了ReactRedux.connect；同时数据的向下传递，需要用户自己写传递的逻辑
+			  	  可以通过跟组件那边以props的方式传导给子组件对应的数据结构，然后在子组件的render函数中获取props来渲染子组件，也就是jsx中使用props的值来渲染
+			  	  因为子组件中是通过store.dispatch来修改store的值，虽然子组件的props改变了，但子组件的props改变，是通过根组件的state一步步传下来的，所以并没有违背props不可改变的原则
+			  	  组件的props只读不可改变，指的是，在这个组件内，不能通过this.props[key]=...来改变组件的props，但是从外面传入的props值改变了，是允许的；这个概念非常关键，把组件理解成纯函数
+			  	  比如function sum(a,b){return a+b};就是函数体内不修改传入的参数，但是函数接受的传参是可以改变的；而function sum(a,b){a=a+1;return a+b;}就不是纯函数，因为在函数体内修改了a的值
+
+			  	  
+			  	  也可以把store绑定到window然后在子组件中直接通过window.store获取对应的数据结构，在子组件的constructor中设置this.state={"key":store.getState()["key"]}来实现redux的数据对子组件的state数据的绑定
+			  	  这样虽然在子组件中添加了this.state={"key":store.getState()["key"]}这个语句，也增加了组件和store的耦合，但好处显而易见，用整个store实现了对所有组件的控制，而且组件的变动是通过state，
+
+			  	  不管怎样，都是把redux的state的数据中对应的key赋值给对应的组件，这样只要对应组件的props或者state有改变【比如事件中调用store.dispatch(),导致组件的state变更】，就会自动执行组件的render，刷新UI
+			  	2.通过store.dispatch来统一处理数据，redux通过自己的store,action，reducer，来统一管理各个组件的state【组件constructor执行的时候自己手动把store的state绑定给组件的state】，
+			  	  这样依赖，store.dispatch调用是的store的state改变的时候，因为store的state中的key和组件的state绑定了，等于是组件的state改变，就会自动触发组件的render函数，刷新UI
+			  ！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+		通用框架UI组件，如何和redux的store数据解耦：通用组件不能依赖store的数据结构
+			1.通用组件通过外部传入props，这样通用组件的内部就不需要用到redux的store了，实现数据解耦
+			2.外部传入的props的数据用于组件的渲染，但是由于props在组件内部是不能修改的，所以设计组件内部的数据变动，就需要在组件内部的constructor中自己设置this.state={},来设置自己的state
+			3.如果组件内部的state【和UI状态对应】又和外面的其他组件有关联，那么就需要给UI组件添加一个钩子，对应的操作完成以后，调用钩子函数，传入组件内部的state数据，在组件的外面调用钩子函数，实现数据同步
+
+		业务UI组件，不需要把组件和store数据解耦，所以直接在组件中写入this.state={"key":store.getState()["key"]}实现state的绑定，这样就非常方便！！！！！！！！！！！！！！！！！
+
+
+		组件基础：函数组件，class组件
+				组件用于UI复用，通过从父元素传入props来实现数据的传递，当然也可以在组建中使用自己的state，都可以；
+
+
+		函数组件：函数就是一个render方法，里面不需要state，直接用props来实现数据获取和展示
+			function Square(props) {
+			  return (
+			    <button className="square" onClick={props.onClick}>
+			      {props.value}
+			    </button>
+			  );
+			}
+		class组件：
+			class PersonalComponent extends React.Component {
+				constructor(props) {
+				    super(props);
+				    this.state = {
+				      squares: Array(9).fill(null),
+				    };
+				}
+				...其他生命周期函数
+
+				//组件每次更新时，render都会自动调用；只要在相同的 DOM 节点中渲染class组件，就仅有一个 PersonalComponent 组件的 class 实例被创建使用
+				//也就是说通过 <PersonalComponent />方式插入到其他dom节点中，会生成一个该React类的一个实例；
+				render() {
+					return (
+					  <button
+					    className="square"
+					    onClick={() => this.props.onClick()}
+					  >
+					    {this.props.value}
+					  </button>
+					);
+				}
+			}
+		React元素都可以在js中赋值给变量；例如var ele=（<h1>{name}</h1>）|| <PersonalComponent /> || <Square value={变量} />;//其中Square是一个函数组件，上面是通过函数的形式定义Square，使用的时候按照组件的方式使用
+		React的函数组件可以很方便地把几个组件组合到一起例如：
+		function App(props) {
+		  return (
+		    <div>
+		      <Square name="Sara" />
+		      <PersonalComponent name="Cahal" />
+		    </div>
+		  );
+		}
+		然后在其他地方通过<App />来使用这个组合型的函数组件
+
+
+
+	5.JSX这个标签语法的使用：为什么这么写，因为babel中添加了jsx语法便于，所以在编译js文件的时候，会识别jsx语法，然后把jsx语法转化成正常的js语法；
+		const element = <h1>Hello, {name}</h1>;//js语句中使用标签语法
+		function formatName(name){
+			if(true){
+				return <h1>{name}</h1>; //语句中也支持标签语法，jsx语法是驼峰格式命名，例如class变成了className；如果添加dataage属性，应该写成dataAge;同时结束标签例如<img /> ,结束的时候需要用/> 
+			}
+		};
+		//对于组合元素，外面需要有个大括号！！！！
+		var element=(
+			<h1>
+				Hello, {formatName(user)}!
+			</h1>
+		);
+		ReactDOM.render(
+		  element,
+		  document.getElementById('root')
+		);
+		React DOM 在渲染所有输入内容之前，默认会进行转义；所以会自动防止XSS攻击
+
+		下面的js中创建元素：
+		const element = (
+		  <h1 className="greeting">
+		    Hello, world!
+		  </h1>
+		);
+		等价于
+		const element = React.createElement(
+		  'h1',
+		  {className: 'greeting'},
+		  'Hello, world!'
+		);
+		最终返回的是 const element={//这个对象就是虚拟dom
+		  type: 'h1',
+		  props: {
+		    className: 'greeting',
+		    children: 'Hello, world!'
+		  }
+		};
+
+		React最终的元素渲染，都是通过ReactDOM.render(element, document.getElementById('root'));来实现的，至于修改状态自动更新UI，其实里面也是自动经过了虚拟dom的生成，diff算法，然后自动调用ReactDOM.render来实现
+
+	6.React事件：
+		<button onClick={activateLasers}>
+		  Activate Lasers
+		</button>
+		class Toggle extends React.Component {
+		  constructor(props) {
+		    super(props);
+		    this.state = {isToggleOn: true};
+
+		    // 为了在回调中使用 `this`，这个绑定是必不可少的
+		    this.handleClick = this.handleClick.bind(this);
+		  }
+
+		  handleClick(e) {//react的绑定的事件是何查事件，不需担心浏览器兼容性问题
+		    e.preventDefault();//阻止默认
+		  }
+
+		  render() {
+		    return (
+		      <button onClick={this.handleClick}>
+		        {this.state.isToggleOn ? 'ON' : 'OFF'}
+		      </button>
+		    );
+		  }
+		}
+		通过constructor里面执行this.handleClick = this.handleClick.bind(this);来绑定this是一种方法；推荐用这种方式！！！
+		同样还可以通过箭头函数，来实现this的事件绑定<button onClick={(e) => this.handleClick(arg,e)} >,因为点击的时候执行的是this.handleClick()这个函数，箭头函数的this就是最近一层的函数的this，也就是事件的this
+		同时上面的<button onClick={(e) => this.handleClick(arg,e)} >等价于<button onClick={this.handleClick.bind(this,arg)} >,通过bind方式绑定this，事件e会被隐式的进行传递。
+
+
+	7.React中的条件渲染：
+		React的条件渲染比Vue灵活很多，Vue只能在template中用v-if之类的语句，而React中，因为React元素可以被jsx语法识别解析解析，所以React元素（DOM标签【例如<h>{obj.name}</h>】或组件）可以看成一个整体
+		React元素可以在所有的js语句中以变量的形式来使用；可以放在js的逻辑中，也可以在return (jsx语法)中使用，例如：
+		return (//return里面，可以用？：三目运算符，&& ||等于运算符，来实现条件运算
+		    <div>
+		      {isLoggedIn
+		        ? <LogoutButton onClick={this.handleLogoutClick} />
+		        : <LoginButton onClick={this.handleLoginClick} />
+		      }
+		    </div>
+		);
+
+		又比如：
+		if (isLoggedIn) {
+	      button = <LogoutButton onClick={this.handleLogoutClick} />;
+	    } else {
+	      button = <LoginButton onClick={this.handleLoginClick} />;
+	    }
+
+	    return (
+	      <div>
+	        <Greeting isLoggedIn={isLoggedIn} />
+	        {button}
+	      </div>
+	    );
+
+	    如何阻止渲染：在极少数情况下，你可能希望能隐藏组件，即使它已经被其他组件渲染。若要完成此操作，你可以让 render 方法直接返回 null，而不进行任何渲染。
+
+	8.React中的数组渲染：
+		
+		方法1：
+		一般都是用map函数，例如：
+		function NumberList(props) {
+		  const numbers = props.numbers;
+		  const listItems = numbers.map((number) =>
+		    <ListItem key={number.toString()}
+		              value={number} />
+		  );
+		  return (
+		    <ul>
+		      {listItems}
+		    </ul>
+		  );
+		}
+		上述方法是把React元素数组保存到一个变量里面，然后直接使用变量传递到jsx中去；
+
+		方法2：
+		function NumberList(props) {
+		  const numbers = props.numbers;
+		  return (
+		    <ul>
+		      {numbers.map((number) =>
+		        <ListItem key={number.toString()}
+		                  value={number} />
+		      )}
+		    </ul>
+		  );
+		}
+		该方法是直接在jsx中使用map函数，比较只管，但是如果内部多个嵌套map，看起来就非常乱，需要用到方法1的的类似的抽离，让jsx看起来更容易理解
+
+		核心：数组渲染的每一个react元素需要有一个key来作为唯一标识符；key只是唯一标识符，所以在组件中传入key，例如 <ListItem key={number.toString()}  value={number} />，
+			  在ListItem组件内部可以通过this.props.value获取传如的value，但是无法通过this.props.key来获取这个组件对应的key；
+			  不同数组中间，比如数组A和数组B，A[0]的key可以和B[0]的key相同，但是同一个数组内，各个react元素的key是不能相同的，
+			  用react数组中的每个react元素的key，用该元素的id或其他唯一的标识符来设置key，别用下标index来设置，性能不好，还可能引起组件的状态问题
+			  为什么性能会出现问题：key是虚拟DOM对象的标识，在更新显示中起着及其重要的作用：
+			  						数组更新逻辑：
+			  								如果新虚拟DOM和老虚拟DOM比较，老的虚拟DOM先遍历新的DOM寻找相同key，如果一样，就查看内容是否改变，如果改变了，就生成新的真实DOM节点
+			  								而用index作下标，删除了第一个节点，相当于把所有的虚拟dom的key都换了一遍，和原来的完全对不上了，全部重新渲染，所以得用唯一的id或者其他标识性的属性作为key的值
+			  同时，key的传入，是在map函数中，而不是在其他地方，比如下面的写法就是错误的：
+			    function ListItem(props) {
+					const value = props.value;
+					return (
+					// 错误！你不需要在这里指定 key：
+					<li key={value.toString()}>
+					  {value}
+					</li>
+					);
+				}
+				function NumberList(props) {
+				  const numbers = props.numbers;
+				  const listItems = numbers.map((number) =>
+				    // 错误！元素的 key 应该在这里指定：
+				    <ListItem value={number} />
+				  );
+				  return (
+				    <ul>
+				      {listItems}
+				    </ul>
+				  );
+				}
+
+
+				而下面的写法才是正确的：
+				function ListItem(props) {
+				  // 正确！这里不需要指定 key：
+				  return <li>{props.value}</li>;
+				}
+				function NumberList(props) {
+				  const numbers = props.numbers;
+				  const listItems = numbers.map((number) =>
+				    // 正确！key 应该在数组的上下文中被指定
+				    <ListItem key={number.toString()}              value={number} />
+
+				  );
+				  return (
+				    <ul>
+				      {listItems}
+				    </ul>
+				  );
+				}
+
+	9.在return后面接下来的jsx语法中，综上所述，可以用到“三目运算符，&&，||，map等js语法”，用于解决react的条件判断后数据循环
+
+	10. 数据交互组件：<input type="text">, <textarea> 和 <select> 之类的标签都非常相似—它们都接受一个 value 属性：
+		v-model是语法糖，其实就是把state的值赋值给这三个组件的value，然后自动添加onChage事件，把e.target.value设置给state
+		把state赋值给上述标签的value，就是受控组件，也就是你输入任何值，其实该标签的value是不会变化的，因为value的值是和state绑定的，所以要改变，只能通过change事件来改变state
+	
+
+	11.React的嵌套（函数组件和class组件中都可以使用），也就是Vue的v-slot，在组件中嵌套组件或者html标签
+	   组件之间代码的复用，最好使用组合嵌套，而非组件继承
+	   React中没有slot的概念，内部嵌套的组件或者html标签，是通过props来实现的，例如：
+	   function SplitPane(props) {//props.left可以看出一个slot；props.right也是一个slot；然后调用的时候只要通过传入left和right这两个props属性即可实现slot的传入
+		  return (
+		    <div className="SplitPane">
+		      <div className="SplitPane-left">
+		        {props.left}
+		      </div>
+		      <div className="SplitPane-right">
+		        {props.right}
+		      </div>
+		    </div>
+		  );
+		}
+
+		function App() {
+		  return (
+		    <SplitPane
+		      left={
+		        <Contacts />
+		      }
+		      right={
+		        <Chat />
+		      } />
+		  );
+		}
+
+		单元素嵌套更加容易，例如：
+		function SplitPane(props) {//props.left可以看出一个slot；props.right也是一个slot；然后调用的时候只要通过传入left和right这两个props属性即可实现slot的传入
+		  return (
+		    <div className="SplitPane">
+		      {props.children}
+		    </div>
+		  );
+		}
+		function App() {
+		  return (
+		    <SplitPane />
+		    	这个是子组件
+		    	<childComponent />
+		    </SplitPane>
+		  );
+		}
+
+
+	12.React的其他细节：
+		1. ele.focus():让元素获取焦点
+		2. <input type="text" ref={this.textInput} /> 通过ref来获取子组件
+		3. Fragment来解决html语义化遭到破坏时候的补救，例如下面dt dd应该放在table里面，但它没有放到table里面，所以需要用Fragment来包一下，一般也不太会这么用dd和dt
+			<Fragment>
+		      <dt>{item.term}</dt>
+		      <dd>{item.description}</dd>
+		    </Fragment>
+
+		4.<label htmlFor="namedInput">Name:</label> 正常的label标签是for属性，但是再React中需要用htmlFor
+
+	
+
+
+	13.ReactRedux.Provider：它的原理是React组件的context属性，https://react.docschina.org/docs/context.html
+						    而ReactRedux.Provider ，其中就是把传入的store保存到Provider组件的state中，然后在执行 Ele=React.createContext(null),把state值赋值给Ele组件的value
+						    所以只要在provider中传入store，然后把这个store里面的state通过
+
+    14.react元素的重新渲染：https://zhuanlan.zhihu.com/p/164749684
+    	当组件的props或state发生变化时，React会构建新的virtual DOM（虚拟DOM），然后通过diff算法把新旧的virtual DOM进行比较，如果新旧virtual DOM树不等则会重新渲染，否则不重新渲染，
+    	哪怕render没有到某个props属性或state属性，只要变了，就会重新构建新的虚拟DOM然后执行一条龙服务【正常情况下，stat和props都是和render相关的，所以改变任意属性进行重新渲染是完全没问题的】
+    	由于DOM操作的非常耗时的，因此要提高组件的性能就应该尽可能地减少组件的重新渲染。如果某个props或state改变了并不影响组件的渲染，那么这个时候是不需要重新渲染组件的
+    	shouldComponentUpdate函数，返回true表示要重新渲染，返回false表示补充下渲染
+    	React已经提供了React.PureComponent，来代替使用shouldComponentUpdate比对的方法，仅仅使用对props和state的“浅比较”来决定组件是否需要更新。
+    	大部分情况下，可以使用React.PureComponent来代替手写 shouldComponentUpdate,因为shouldComponentUpdate是手动比较，而React.PureComponent会自动比较，是“浅比较”
+
+
+
+    15.React和redux的深入阅读：PropTypes.shape，Connect含义：阅读redux相关的源码！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+
+    15.5 ：受控组件和非受控组件：用 props 传入数据的话，组件可以被认为是受控（因为组件被父级传入的 props 控制）。数据只保存在组件内部的 state 的话，是非受控组件（因为外部没办法直接控制 state）。
+    15.6 ：派生state，也就是state是通过props或者其他数据派生出现；比如state是通过props的数据而来，props数据改变，state也要同步改变，这个state就是派生自props属性
+
+    ！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+    ！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+    ！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+    16.React的生命周期：https://react.docschina.org/docs/react-component.html
+    	挂载DOM【当组件实例被创建并插入 DOM 中时，其生命周期调用顺序如下】：
+    		constructor()：处理this.state和事件的绑定【同时要特别注意，不要把props赋值给state】
+			static getDerivedStateFromProps()：只监控props，让组件在 props 变化时更新 state，它能获得props和state，并且在update和首次渲染都会在render之前调用，
+												返回state或null【null表示更新state】，它无法访问组件实例【因为static】；这个功能要保守使用！！！！！！！！！！
+
+			render()：应该是个“纯函数”，只是渲染，传入数据相同，就输出相同界面【一个初始渲染的界面】
+			componentDidMount()：元素插入DOM之后触发，这里放请求网络数据【页面初始化数据，比如ajax请求等】；所以在这个函数里面设置了state，那么就会再次触发render，
+								 所以render函数一般是会执行2次，第一次是默认；第二次就是在ajax请求获取到初始化数据后，触发自动的update，里面就包含了render函数的再次执行
+								 想要让render执行一次，那么就不要在componentDidMount再去请求ajax获取初始数据，而是在react创建之前就请求ajax数据，然后在constructor内就传入初始化的数据给state
+		
+		更新DOM【修改state或props时候】：
+			static getDerivedStateFromProps()：只监控props，
+			shouldComponentUpdate()：state或props修改后，这里判断时候需要进行更新dom，默认是返回true，这里是自定义设置哪些state和props修改后不需要更新【就是不执行后面的render以及componentDidUpdate】
+									 首次渲染或使用 forceUpdate() 时不会调用该方法；推荐使用PureComponent来自动对比，而不是手动比较
+			render()：纯函数
+			getSnapshotBeforeUpdate()：很少用到，一般对于界面的滚动等UI变化的时候，获取DOM的UI位置
+			componentDidUpdate()：数据更新后才触发【首次挂载dom渲染不触发】，这里不可以修改state或props，因为一旦设置了state，优惠重新触发一遍新的shouldComponentUpdate>render>componentDidUpdate
+								  如果非要在这里改变state或props，必须加上条件语句，否则进入死循环无限调用。
+
+		卸载DOM：
+			componentWillUnmount()：卸载DOM之前调用，取消计数器，中止网络请求，解绑事件订阅等
+
+		错误捕获【当渲染过程，生命周期，或子组件的构造函数中抛出错误时，会调用如下方法】
+			static getDerivedStateFromError()
+			componentDidCatch(error, info)：错误捕获
+
+
+		不推荐使用的方法【因为后续将要过时，React17还可以用，但是之后的版本就不适用了】：！！！！！！！！！！
+			componentWillMount() ： 挂载DOM行为，“constructor之后，render之前”；用constrctor代替
+			componentWillUpdate() ：更新DOM行为，“shouldComponentUpdate之后，render之前”；逻辑放到getSnapshotBeforeUpdate和componentDidUpdate中
+			componentWillReceiveProps()：和getDerivedStateFromProps类似【挂载和数据更新会执行该方法】，同时父组件更新的时候，即使子组件的props没有更新，也会执行该方法，
+										 但是使用componentWillReceiveProps经常会出现bug，尤其是把props属性赋值给state的场景下
+										 这个函数对于props的变化判断，可以通过memoization来实现：https://react.docschina.org/blog/2018/06/07/you-probably-dont-need-derived-state.html#what-about-memoization
+	！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+	！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+	！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+
+
+
+	16.5： React api
+		首先区分React.Component和React.PureComponent: PureComponent没有shouldComponentUpdate()，它会自动把props的前后状态进行浅层比较，state的前后状态进行浅层比较，判断是否需要更新dom
+    	React.PureComponent可以用在class组件和函数组件上；
+    	React.memo是一个高阶组件,只能用在“函数组件上”，React.memo只检查props是否变动，没变动就不update【用上次的渲染效果】，和React.PureComponent的功能类似，只是浅层对比https://react.docschina.org/docs/react-api.html
+		React.memo如果向自定义对比而不是浅层对比，可以多传一个对比函数：MyComponent是函数组件，React.memo(MyComponent)是正常使用浅层对比的函数组件；而React.memo(MyComponent,compareFunc)添加了对比函数，自定义update的逻辑
+		function compareFunc(prevProps, nextProps){}//这个对比函数只是对比前后的props，因为函数组件没有state，数据只是通过props来传递和渲染！！！！！！！！！！！！！！！
+		React.isValidElement(object):是否是React元素【普通标签的react元素，react组件【函数组件，class组件】】
+		component.forceUpdate();//强制更新，一般不太会用到，因为“props和state的改变会触发更新，以及shouldComponentUpdate函数中额外添加是否更新的判断逻辑”就可以很好的控制组件的更新了；但特殊情况下，可以用这个来强制更新
+
+
+
+    17. 错误边界：https://react.docschina.org/docs/error-boundaries.html  ，componentDidCatch方法获取错误
+
+    ！！！！！！！！！！！！！！！！！
+    18. 高阶组件：HOC【和高阶函数对应，高阶函数是指某个函数的”传入的参数是函数”或者“返回的参数是函数”；告诫组件就是传入的参数是组件，或者返回的参数是组件】
+    			 用高阶组件代替mixins：
+    			 场景：好多组件，生命周期，事件绑定等总体的流程全部差不多，只有传入的数据和render函数的jsx部分有差异，这个时候为了提高复用性，就需要用高阶组件（HOC）来抽离公共逻辑
+    			 	   高阶组件是个纯函数【不能对组件和传入的数据产生修改】，没有副作用，只是用于抽离各个组件的公共业务。
+    			 	   案例：https://react.docschina.org/docs/higher-order-components.html
+    			 	   高阶组件的静态方法是写在函数内部的：
+    			 	   function enhance(WrappedComponent) {
+						  class Enhance extends React.Component {/*...*/}
+						  // 必须准确知道应该拷贝哪些方法 :(
+						  Enhance.staticMethod = WrappedComponent.staticMethod;
+						  return Enhance;
+						}，静态方法就是Enhance.staticMethod;
+
+						使用 hoist-non-react-statics 自动拷贝所有非 React 静态方法:
+						import hoistNonReactStatic from 'hoist-non-react-statics';
+						function enhance(WrappedComponent) {
+						  class Enhance extends React.Component {/*...*/}
+						  hoistNonReactStatic(Enhance, WrappedComponent);
+						  return Enhance;
+						}
+
+						//常用的高阶组件写法
+						class ComponentB extends React.Component {/*...*/}//组件B
+
+						function logProps(WrappedComponent) {//高阶组件函数
+						  return class extends React.Component {
+						    componentDidUpdate(prevProps) {
+						      console.log('Current props: ', this.props);
+						      console.log('Previous props: ', prevProps);
+						    }
+						    render() {
+						      // 将 input 组件包装在容器中，而不对其进行修改。Good!
+						      return <WrappedComponent {...this.props} />;//这个是把最终的组件传入的props穿透传导给组件WrappedComponent【变量】；
+						      											  //也就是下面的ComponentA组件调用的时候传入的props属性穿透传导给WrappedComponent【变量】
+						      											  //注意，ref属性不是props，所以不能穿透，想要让ref穿透传入，只能通过React.forwardRef 【具体使用场景还不确定】
+						    }
+						  }
+						}
+						
+						var ComponentA = logProps(ComponentB);//获得最新的组件；
+
+	19.mixins也是用来解决组件的公共逻辑复用的问题的，
+		mixins：就是把公共的模块抽离出来作为mixins，然后再其他具体的模块中放入，mixins的属性，方法等会自动扩展到对应的vue的methods和data上
+		写法见链接【react和vue的mixins使用方式都一样】：https://blog.csdn.net/weixin_33275327/article/details/82743905
+	   	react中的mixins：Mixins里也可以编写组件生命周期的方法，需要注意的是：Mixins里的方法并不会覆盖组件的生命周期方法，会在先于组件生命周期方法执行；除了生命周期方法可以重复以外，其他的方法都不可以重复，否则会报错
+
+	核心：
+		为什么用高阶函数代替mixins：因为mixins虽然抽离了公共的部分，使用起来也很方便，但是
+									1.“ES6 classes不支持Mixins”
+									2.Mixins将会修改state，所以开发者无法直接的确定state来自哪里，如果使用多个Mixins更甚
+										因为组件最终产生的组件和mixins里面的方法或属性耦合，mixins的代码是最终的组件的一部分
+										而高阶函数恰恰相反，它是继承关系【oop思维】，就是有原来的组件和通过高阶函数生成的新组件；
+										mixins直接就是一个模块直接混入到组件里面去，从头到位就只有一个被mixins的逐渐，以及一个公共的mixins模块
+									3.多个mixins修改state会造成命名冲突
+
+	！！！！！！！！！！！！！
+
+
+
+
+    20. react元素最外层必须是单一的，但有时候想要添加没有最外层的react元素，就要用到Fragments:
+    	return (
+	      <>
+	        <td>Hello</td>
+	        <td>World</td>
+	      </>
+	    );
+	    或
+	    return (
+	      <React.Fragment>
+	        <td>Hello</td>
+	        <td>World</td>
+	      </React.Fragment>
+	    );
+
+
+
+
+	13. webpack的代码分割，异步加载模块的js文件的重命名【webpack的entry里面写js来设置命名规范】！！！！！！！！！！！！！
+
+	14. 模块异步加载【React.lazy + Suspense ：该懒加载不支持服务端渲染】：React.lazy 接受一个函数，这个函数需要动态调用 import()。它必须返回一个 Promise，该 Promise 需要 resolve 一个 defalut export 的 React 组件。
+		同时还可以用react-router-dom来配合上面的异步加载，实现路由功能
+
+		import React, { Suspense } from 'react';
+		import MyErrorBoundary from './MyErrorBoundary';//这个错误模块，用于解决异步加载出错时候的错误处理
+		const OtherComponent = React.lazy(() => import('./OtherComponent'));
+		const AnotherComponent = React.lazy(() => import('./AnotherComponent'));
+
+		const MyComponent = () => (
+		  <div>
+		    <MyErrorBoundary>
+		      <Suspense fallback={<div>Loading...</div>}>
+		        <section>
+		          <OtherComponent />
+		          <AnotherComponent />
+		        </section>
+		      </Suspense>
+		    </MyErrorBoundary>
+		  </div>
+		);
+
+		注意，React.lazy异步加载文件，只能异步哪些export default ..格式的js模块；如果某个模块不是export default的形式，那么就要修文件的导出模式；
+		通过 
+		import {MyComponent} from "..."
+		export { MyComponent as default } 可以从其他文件获取对应的组件，然后以default的格式导出，这样以后，React.lazy就能正常懒加载该文件了
+
+
+
+
+
+	15. JSX深度理解：
+		React组件写的时候，应该大写开头，才会被识别为React组件，小写的会被识别为html标签，
+		<MyButton color="blue" shadowSize={2}>  
+		  Click Me
+		</MyButton>
+		等价于：
+		React.createElement(
+		  MyButton,
+		  {color: 'blue', shadowSize: 2},
+		  'Click Me'
+		)
+
+		MyButton是通过function或者React.Component来定义的一个构造函数
+
+		jsx里面只能是表达式，不能写if for循环等语句
+
+		jsx遇到小写的标签，例如<div className="sidebar" />，实际上执行的是
+		React.createElement(
+		  'div',
+		  {className: 'sidebar'}
+		);
+		也就是说jsx中的标签，都会自动调用React.createElement函数来生成对应的虚拟DOM
+
+		<MyTextBox autocomplete />等价于<MyTextBox autocomplete={true} />，也就是说没入组件的props没有设置值，那么自动给设置true；好的习惯是必须给props赋值，避免造成歧义
+		组件的props支持es6的扩展运算
+		var opts={age:"23",name:"jeffrey"};//正常的纯Object是没有部署Iterator接口的，但是React却支持这个对象的“扩展”，这个是很好的，说明React再解析的时候，给这个传入的对象进行了遍历！！！！！！！！！！！！！！！
+		return <MyTextBox autocomplete {...opts} />
+
+		JSX 会移除行首尾的空格以及空行。与标签相邻的空行均会被删除；
+
+		jsx可以返回数组：
+			render() {
+			  // 不需要用额外的元素包裹列表元素！
+			  return [
+			    // 不要忘记设置 key :)
+			    <li key="A">First item</li>,
+			    <li key="B">Second item</li>,
+			    <li key="C">Third item</li>,
+			  ];
+			}
+
+			<ul>
+		      {[1,2,3].map((message) => <Item key={message} message={message} />)}
+		    </ul>
+
+		！！！！！！！！！！！！！！！！！！！！！！！！！！！
+		jsx的注意点：
+			1.
+			<div>{null}</div>
+			<div>{undefined}</div>
+			<div>{true}</div>
+			这三个都等价于<div></div>，也就是说boolean null undefined作为返回值都是空！！！！！！！！
+
+			2.
+			jsx中下面的语句，仍然会返回<div> <MessageList messages={props.messages} /> </div>,因为[].length 返回的是“0”
+			<div>
+				  {[].length &&
+				    <MessageList messages={props.messages} />
+				  }
+			  </div>
+			  ！！！！！！！！！！！！！！！！！
+			  但如果是{[].length>0 && <MessageList messages={props.messages} /> } ,就不会执行<MessageList messages={props.messages} />，也就是说jsx中的表达式，最好是boolean，以避免错误
+			  ！！！！！！！！！！！！！！！！！
+
+			3.如果用ES6语法写React，那么就不支持mixIns，只能用高阶组件来实现组件的公共功能的复用，react也推荐用高阶组件，避免了业务耦合以及一些其他问题，高阶组件是oop【面向对象编程】的思维
+		！！！！！！！！！！！！！！！！！！！！！！！！！！！
+
+
+
+		16. React线上版本和开发版本：以.production.min.js 为结尾的 React 文件适用于生产。其他是开发版本
+
+		17.React性能：
+			1.React制作的list页面，列表项太多，造成dom渲染的性能问题，用到虚拟滚动技术：react-window 和 react-virtualized 是热门的虚拟滚动库【自己也可以写，但没必要造轮子】
+				一般的解决方案有3个：
+					1.数据分页：每一页个数固定，最原始的方法
+					2.虚拟滚动【在无限滚动的基础上优化】：
+						2.1 每一项的行高相同，便于计算
+						2.2 总的item个数和每个高度，就可以计算得出总高度，然后内部的absoulte定位的div设置高度是这个，通过容器高度和真实高度，就可以为造出一个滚动条【随着向下滚动后item加载越来越多，滚动条对于的长度也变动】；
+						    但是dom的总体数量的最大值不变。
+						2.3 滚动的时候，计算偏移量，获取最底部的哪个元素会出现在可视窗口，大概原理就这样，有时候为了方便，真正的dom数量肯定是超过可视窗口的dom数量，可视窗口的上下都有dom，但不会很多
+			2.shouldComponentUpdate 钩子函数或者用 React.PureComponent 
+				shouldComponentUpdate(nextProps, nextState) {
+				    if (this.props.color !== nextProps.color) {
+				      return true;
+				    }
+				    if (this.state.count !== nextState.count) {
+				      return true;
+				    }
+				    return false;
+				}
+
+				最好是用React.PureComponent ，然后对于state内的数组变动，使用如下方式【因为用的是Object.defineProperty来监控属性】
+				this.setState(state => ({
+				    words: state.words.concat(['marklar'])
+				}));
+
+			3.React的dom更新的算法复杂度：
+				一般的浏览器diff算法，将一棵树转换成另一棵树的最小操作数。 然而，即使在最前沿的算法中，该算法的复杂程度为 O(n 3 )，其中 n 是树中元素的数量；这个计算量太大
+				React是深度优先遍历，并且“同层对比”【vue也是这么对比】：diff算法详解
+					1.不同类型元素，销毁原来的dom，生成新的dom
+					2.同类型的元素，保留dom，更新dom属性
+					3.同类型组件，React 将更新该组件实例的 props 以跟最新的元素保持一致，并且调用该实例的 componentWillReceiveProps() 和 componentWillUpdate() 方法。
+								 下一步，调用 render() 方法，diff 算法将在之前的结果以及新的结果中进行递归。
+
+			4.如果react元素数组的每一项没有key，那么在列表头部插入会很影响性能，那么更变开销会比较大。因为React的同层对比，是从左向右对比，而vue是从两边向中间对比【vue的diff算法更好】
+			  用index作为key非常不建议，因为下秒随着数组的修改也会变动，用id或者react元素特定的属性作为key，那么react在diff的时候，根据key来判断是否是相同元素，节点只是移动或者对节点属性进行修改
+			  如果不用key，这个时候如果react数组数有10个li元素，这个时候在开头插入一个新的li元素，因为标签类型相同，那么老虚拟dom的第一个li和新虚拟dom的第一个li类型是相同的，这个时候是把他当作同类元素，直接更新
+			  这样一来，所有的li元素都会重新更新，但有了key就不一样了，知道原来和现在的li是如何对应的，只需要移动即可。
+
+			React自带的的性能测试组件：Profiler ：https://react.docschina.org/docs/profiler.html
+			比如
+				<Profiler id="pro1" onRender={callback} >
+					<componentA />
+					<componentB />
+				</Profiler >
+				然后在callback函数中，就可以获取到里面的组件的渲染性能问题,callback的参数如下
+					id: string - 发生提交的 Profiler 树的 id。 如果有多个 profiler，它能用来分辨树的哪一部分发生了“提交”。
+					phase: "mount" | "update" - 判断是组件树的第一次装载引起的重渲染，还是由 props、state 或是 hooks 改变引起的重渲染。
+					actualDuration: number - 本次更新在渲染 Profiler 和它的子代上花费的时间。 这个数值表明使用 memoization 之后能表现得多好。（例如 React.memo，useMemo，shouldComponentUpdate）。 理想情况下，由于子代只会因特定的 prop 改变而重渲染，因此这个值应该在第一次装载之后显著下降。
+					baseDuration: number - 在 Profiler 树中最近一次每一个组件 render 的持续时间。 这个值估计了最差的渲染时间。（例如当它是第一次加载或者组件树没有使用 memoization）。
+					startTime: number - 本次更新中 React 开始渲染的时间戳。
+					commitTime: number - 本次更新中 React commit 阶段结束的时间戳。 在一次 commit 中这个值在所有的 profiler 之间是共享的，可以将它们按需分组。
+					interactions: Set - 当更新被制定时，“interactions” 的集合会被追踪。（例如当 render 或者 setState 被调用时）。
+
+
+		18.React中最好别使用Refs，因为用状态提升更加适合解决问题，
+
+
+		！！！！！！！！！！！！
+		19.React高级用法：1和4都是让组件灵活多变地组合；2是抽离公共业务和抽象化组件；3是组件之间的信息同步
+			1.函数组件【和class组件不同，是简化版组件】，组件组合使用，而不是组件继承，使得用起来更加方便和多样化。
+			2.高阶组件【它是一个函数，传入组件或返回组件，它可以是函数组件也可以是class组件】，用于提取各个组件的公共信息，用于抽象化组件，组件内部不修改传入组件的内容，类似于纯函数效果；抛弃mixins方式的公共业务抽离
+			3.状态提升，就是把各个组件都用到的属性传递到他们的父组件，通过父组件的方法控制该属性的变化，并且把该方法传给各个子组件，达到各个子组件之间的该属性的公用。
+			4.组件嵌套，类似vue的v-slot;还可以放入多个内嵌的children来定义
+				function ComponentA(props) {
+				  return (
+				    <div className="SplitPane">
+				      <div className="SplitPane-left">
+				        {props.children}
+				      </div>
+				    </div>
+				  );
+				}来定义
+				<ComponentA> <h1>jeffrey</h1> </ComponentA>来使用 ;
+			5. render props技术：用于组件之间的状态共享，基本没有这个必要，不看了，但是需要知道有这么一个技术！！！！！！！！
+			6. ref引用技术，React.createRef()，解决上传文件等非受控组件的资源访问，因为这个资源不是在props或者state上；说白了就是让你更方便的访问组件内的原生dom；！！！！！！！！！！！！！！！！！
+				class FileInput extends React.Component {
+				  constructor(props) {
+				    super(props);
+				    this.handleSubmit = this.handleSubmit.bind(this);
+				    //这里创建一个引用给this.fileInput;然后在render中又把这个引用赋值给了input元素的ref，这样一来，this.fileInput.current就指向了input元素，达到了组件对内部任意组件的访问
+				    //一般是不需要用这样的方式来访问组件内的其他元素的数据的，因为组件内的其他元素的数据都是绑定在props或者state上的，但是上传组件是非受控组件，它的值是一个file，不在props或者state上，所以才需要用ref
+				    this.fileInput = React.createRef();
+				  }
+				  handleSubmit(event) {
+				    event.preventDefault();
+				    alert(
+				      `Selected file - ${this.fileInput.current.files[0].name}`
+				    );
+				  }
+
+				  render() {
+				    return (
+				      <form onSubmit={this.handleSubmit}>
+				        <label>
+				          Upload file:
+				          <input type="file" ref={this.fileInput} />
+				        </label>
+				        <br />
+				        <button type="submit">Submit</button>
+				      </form>
+				    );
+				  }
+				}
+
+				ReactDOM.render(
+				  <FileInput />,
+				  document.getElementById('root')
+				);
+
+				正常情况下，ref只能把组件的dom引用提取出来，但是只能在本组件内使用，而React.forwardRef可以把当前组件内的dom元素转发给其他组件，传递出去
+
+
+		20.React.StrictMode严格模式，套在所有组件的外面，检测果实的API，废弃的方法，不安全的生命周期等，基本不会用到
+
+		21.PropTypes 进行“类型检查”，这个是react内置的类型检测，通过import PropTypes from 'prop-types';引入
+			确保传入的类型是合格的类型，类型有string,bool,number,func,object,array,symbol,node[任何可被渲染的元素（包括数字、字符串、元素或数组）或fragment]；element【React元素】
+			例如：
+			MyComponent.propTypes = {
+				optionalArray: PropTypes.array,
+				optionalBool: PropTypes.bool,
+				optionalFunc: PropTypes.func,
+				optionalNumber: PropTypes.number,
+				optionalObject: PropTypes.object,
+				optionalString: PropTypes.string,
+				optionalSymbol: PropTypes.symbol,
+				optionalNode: PropTypes.node,
+				optionalElement: PropTypes.element,
+				optionalMessage: PropTypes.instanceOf(Message),//Message构造函数的实例
+				optionalEnum: PropTypes.oneOf(['News', 'Photos']),//两个特定值中的一个
+				optionalUnion: PropTypes.oneOfType([//其中某一个类型
+				    PropTypes.string,
+				    PropTypes.number,
+				    PropTypes.instanceOf(Message)
+				]),
+				optionalArrayOf: PropTypes.arrayOf(PropTypes.number),//数组中的类型是number
+				optionalObjectOf: PropTypes.objectOf(PropTypes.number),//对象中的类型是number
+				optionalObjectWithShape: PropTypes.shape({// 可以指定一个对象由特定的类型值组成
+					color: PropTypes.string,//color属性的数据类型是string
+					fontSize: PropTypes.number//fontSize属性的数据类型是number
+				}),
+				optionalObjectWithStrictShape: PropTypes.exact({//对象内的属性是某个特定的类型，就提示警告
+					name: PropTypes.string,
+					quantity: PropTypes.number
+				}), 
+				requiredFunc: PropTypes.func.isRequired,// 你可以在任何 PropTypes 属性后面加上 `isRequired` ，确保这个 prop 没有被提供时，会打印警告信息。
+				requiredAny: PropTypes.any.isRequired,// 任意类型的数据
+			}
+
+			完整使用案例：
+			import PropTypes from 'prop-types';
+			class MyComponent extends React.Component {
+			  render() {
+			    // 这必须只有一个元素，否则控制台会打印警告。
+			    const children = this.props.children;
+			    const age = this.props.age;
+			    return (
+			      <div>
+			        {children}
+			      </div>
+			    );
+			  }
+			}
+
+			MyComponent.propTypes = {
+			  children: PropTypes.element.isRequired //表示props中的children是react元素，且是必须要传入的
+			};
+			Greeting.defaultProps = {//通过这个来设置传入的props属性的默认值，比如设置了props中的age属性的默认值是“25”
+			  age: '25'
+			};
+
+
+
+		22. Web Component: W3C 正在向 HTML 和 DOM 规范添加的一套标准,它允许在Web 文档和 Web 应用程序中创建可重用的组件，这样做的目的是将基于组件的软件工程引入 Web 平台。目前直接忽略
+
+		23.额外的API：https://react.docschina.org/docs/react-dom-server.html
+				0.hydrate ：用于react的服务端渲染【ssr】，服务端渲染用该方法替代render方法【react16和17的处理方式还不通，详见https://blog.csdn.net/halations/article/details/108368240】；
+							一般服务端渲染随便选一个template即可，没必要用react，只为了支持seo
+				0.ReactDOMServer：用在node上，用于React的ssr；允许你将组件渲染成静态标记
+						下述方法可以被使用在服务端和浏览器环境。
+						renderToString()：将 React 元素渲染为初始 HTML；使用此方法在服务端生成 HTML，并在首次请求时将标记下发，以加快页面加载速度，并允许搜索引擎爬取你的页面以达到 SEO 优化的目的
+						renderToStaticMarkup()：和renderToString上面方法类似，但只返回html的“静态字符串”，不包含事件，生成的是文件流
+
+						//下面方法只能在服务端执行
+						renderToNodeStream():和renderToString对应，但只能在服务端执行
+						renderToStaticNodeStream():和renderToStaticMarkup对应，只能在服务端识别调用
+
+				1.ReactDOM.findDOMNode(component)：获取某个组件的原始DOM节点【如果组件是fragment，那么就返回第一个非空DOM元素】
+
+		！！！！！！！！！！！！
+		！！！！！！！！！！！！
+		24.核心，react的html属性以及事件的差异化：
+			html属性差异：
+				1.class变为className
+				2.type为radio或者checkbox的html标签，属性checked可以设置true和false，而html中是只要有这个属性，就会checked状态，react更加人性化
+				3.option的selected属性，设置属性的值判断是否是selected，而原始的html标签只要是有这个属性，就是选中；这个和2中的checked类似，是react的优化
+				3.dangerouslySetInnerHTML：类似于vue的v-html,可以内置html，放弃了xss攻击【因为富文本编辑导致xss攻击2】
+				4.label的for属性改成了htmlFor
+				5.style属性，html的标签上的style是字符串，而react的html标签上的style属性，是一个对象，例如 <div style={divStyle}>Hello World!</div>; 
+					divStyle = {//js中的style不会自动补齐，所以需要自己设置WebkitTransition，msTransition之类的兼容
+					  color: 'blue',
+					  backgroundImage: 'url(' + imgUrl + ')',
+					};
+
+			合成事件：react的事件不是原生事件，是合成的全兼容事件，事件包含内容如下：https://react.docschina.org/docs/events.html
+				1. e.stopPropagation() ； e.preventDefault() 全兼容
+				2. 事件类型：
+					剪切板：onCopy onCut onPaste
+					键盘事件：onKeyDown onKeyPress onKeyUp
+					焦点事件：onFocus onBlur
+					表单事件:onChange onInput onInvalid onReset onSubmit 
+					鼠标事件：
+							点击：onClick onContextMenu onDoubleClick  onMouseDown onMouseUp
+							拖拽：onDrag onDragEnd onDragEnter onDragExit onDragLeave onDragOver onDragStart onDrop
+							移动：onMouseEnter onMouseLeave【这两个事件不是正常的冒泡，也没有捕获阶段。】 onMouseMove onMouseOut onMouseOver 
+							 
+					指针事件：onPointerDown onPointerMove onPointerUp onPointerCancel onGotPointerCapture
+							 onLostPointerCapture onPointerEnter onPointerLeave onPointerOver onPointerOut
+
+					选择事件：onSelect
+					触摸事件：onTouchCancel onTouchEnd onTouchMove onTouchStart
+					滚动事件+滚轮事件：onScroll，onWheel
+					图像事件：onLoad onError
+					动画事件：onAnimationStart onAnimationEnd onAnimationIteration
+					过渡事件：onTransitionEnd
+					媒体事件：onAbort onCanPlay onCanPlayThrough onDurationChange onEmptied onEncrypted
+							 onEnded onError onLoadedData onLoadedMetadata onLoadStart onPause onPlay
+							 onPlaying onProgress onRateChange onSeeked onSeeking onStalled onSuspend
+							 onTimeUpdate onVolumeChange onWaiting
+			！！！！！！！！！！！！
+			！！！！！！！！！！！！
+
+			测试相关：Test Utilities+ jest配合使用
+			兼容性：react16用到了set和map，所以只兼容ie11+，想要兼容ie9需要用babel做兼容
+
+		25.Hook【useState，useEffect，useContext】：react16.8加入的：https://react.docschina.org/docs/hooks-overview.html
+				让函数组件内可以使用state：state hook
+				解决修改原生dom产生的副作用：effect hook
+				同样也可以用于解决组件之间重用逻辑
+
+
+
+	12.项目开发的分析流程：
+			//项目资源
+			项目时间：
+			项目PRD：2.6.6
+			项目UI稿：2.6.6
+			项目API：详见2.6.6PRD
+			项目本地开发地址：
+			项目分支：v2.6.6
+
+			//相关人员
+			产品经理：PRD上有
+			设计师+交互：
+			前端：自己做
+			后端：
+			测试：
+
+			//项目规划
+			项目分析： 项目优先级，兼容性，是B端还是C端站点，决定技术选型【框架,UI组件库，专业图形库，常用方法库（自己的或公司通用的）】，文件结构和打包；
+			项目流程：
+					1.根据PRD逻辑和UI，确认中间详细的“数据+UI+交互逻辑”【尤其是各种不同状态下的UI：错误，警告，折叠，展开，滑动】，数据需要和后端确认API接口【前后端功能划分】，UI和交互逻辑向“设计师和产品”提出逻辑问题以及缺失的UI
+					2.根据设计稿的UI和prd，进行模块划分，判断出“所有页面公共组件”，“页面内复用组件”，“页面内不复用组件”
+					2.5：做完前面2步骤后，分析开发的时候资源对外的依赖情况，提出UI和后端给到接口的具体时间，然后评估大概的开发时间【评估开发时间一定要把中间的UI修改，交互变动，api接口变动的时间算进去，肯定会有变动】； 最终评估前端开发的时间；
+						最麻烦的就是资源对外依赖；以及设计师和后端开发给到资源的时间节点；以及项目中体的UI，交互，后端数据接口的变动；prd没看仔细导致功能遗漏。
+					3.根据UI，写一个html结构，大致完成总体的页面布局，下面的4步就是把第2步骤的组件一个一个开发出来，填充到这个html结构里面
+					4.按照模块进行UI和业务逻辑交互效果的开发，简单的页面自外而内的开发，也就是先开发最外层的组件，然后再开发里面的一个个的组件；复杂的页面需要自内而外开发，先从小组件开始开发，然后慢慢向外
+						4.1 进行UI开发+动画效果：样式和动画都是最简单的，先确定这个，如果后续出现样式不符合业务逻辑，那么样式调整是很轻松的，一旦出现业务逻辑写好了，然后发现无法满足样式，这个时候因为样式去改动业务逻辑，那就非常麻烦
+						4.2 数据展示【业务逻辑+交互效果开发】：这个是繁重的任务，也是最核心的任务
+
+
+			//项目可能出现的问题
+			项目疑问：
+				UI疑问：
+				交互疑问：
+				数据疑问：数据展示和接口数据结构
+
+			项目坑：
+				是否依赖外部资源，
+				是否遗漏功能，
+				UI和接口数据结构给到的时间节点
+				前后端功能划分：哪些前端做，哪些后端做
+				UI，交互，数据的变动：小变动自己消化，大变动及时和产品沟通延长开发周期。

@@ -1,0 +1,23 @@
+1.webpack5最外层会有用到箭头函数，babel无法转化，在webpack设置里面添加target: ['web', 'es5'],
+2.webpack5打包的时候里面的js会有不兼容ie的js，websocket原因导致SecurityError，因为ie下连接数量是有限制的，各大浏览器限制数量大概如下
+    chrome  256 个
+    Firefox    200 个
+    safari      1273 个（MAC 版本）
+    IE 6 个或者更少
+
+ie需要修改注册表：注册表原来的最大值
+执行regedit打开注册表，然后找到Internet浏览器，注册表地址如下
+\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Internet Explorer\Main\FeatureControl\FEATURE_MAXCONNECTIONSPER1_0SERVER //explore.exe最大4；iexplore.exe最大10 ：自己把它们扩大了30倍
+\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Internet Explorer\Main\FeatureControl\FEATURE_MAXCONNECTIONSPERSERVER //explore.exe最大2；iexplore.exe最大10
+
+
+
+
+ie下兼容问题集合：
+
+1.app.html里面，src="../../common/assets/img/write.png"的路径问题导致js报错，删除src="../../common/assets/img/write.png" ：unfinish
+<img class="write_img" @click="showArticleDrawer" @mouseenter="showWriteInfo" @mouseleave="hideWriteInfo" src="../../common/assets/img/write.png" alt="">
+
+2.其他地方也有上面类似的图片引用问题，需要解决：unfinish
+
+3.useBuiltIns属性从usage改成entry，引入整个polyfill，用usage没办法解决vue在ie下的兼容性问题

@@ -1,0 +1,62 @@
+<a-drawer class="article-editor-wrapper" title="给文章添加标签，更容易进入热搜哦" :placement="'bottom'" :height="'80%'" :width="720" :visible="articleForm.visible" :body-style="{ paddingBottom: '80px' }" @close="closeArticleDrawer">
+
+    
+
+    <a-form-item class="form-item-inner" label="" :validate-status="articleForm.data.title.status" :help="articleForm.data.title.helpInfo" >
+            <div @keydown.prevent.tab="tabNext" >
+                  <a-input
+                    :value="articleForm.data.title.val"
+                    @change="changTitle"
+                    
+                    placeholder="请输入标题"
+                  />
+            </div>
+    </a-form-item>
+
+    <a-form-item class="form-item-inner" label="" :validate-status="articleForm.data.content.status" :help="articleForm.data.content.helpInfo" >
+            <quill-editor
+                :content="content"
+                :options="editorOption"
+                @change="onEditorChange($event)"
+                @blur="onEditorBlur($event)"
+                @focus="onEditorFocus($event)"
+                @ready="onEditorReady($event)"
+            ></quill-editor>
+    </a-form-item>
+
+
+    <div class="article-display-tag">
+        <span  class="personal-tag" v-for="(tag,index) in articleForm.data.tag.tagList" >
+          {{ (tag.length>20)?(tag.slice(0, 20)+'...'):tag}}
+          <span class="tag-close" @click="function () {delTag(tag);}">×</span>
+        </span>
+        <a-input
+            type="text"
+            size="small"
+            :style="{ width: '78px',display:articleForm.data.tag.inputVisible?'inline':'none' }"
+            :value="articleForm.data.tag.curtentValue"
+            @change="tagContentInputChange"
+            @blur="addTag"
+            @keyup.enter="addTagWrapper"
+        />
+        <span @click="showTagInput" class="left addTagBtn" :style="{display:articleForm.data.tag.inputVisible?'none':'inline'}">+ 添加标签</span>
+    </div>
+
+    <div :style="{
+          position: 'absolute',
+          right: 0,
+          bottom: 20,
+          width: '100%',
+          padding: '10px 24px',
+          background: '#fff',
+          textAlign: 'right',
+          zIndex: 1,
+        }">
+        <a-button :style="{ marginRight: '8px' }" @click="closeArticleDrawer" :size="'large'" >
+            取消
+        </a-button>
+        <a-button type="primary" @click="submitArticel" :size="'large'" >
+            提交
+        </a-button>
+    </div>
+</a-drawer>

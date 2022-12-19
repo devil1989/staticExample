@@ -1,0 +1,210 @@
+// 特别注意，所有的自适应，都要再BFC内完成【块内正常流展示】
+
+/*水平反向，只有with和magin可以设置auto，所以居中的时候，必须有一个属性是固定的*/
+.container{
+    margin:0px 50px;
+    background:#e3e3e3;
+    height:200px;
+}
+.center{
+    width:100px;
+    margin:0px auto;
+    background:#a0a0a0;
+    height:200px;
+}
+
+
+
+
+
+
+
+/*（内部块元素宽高可以不确定）块元素水平垂直居中方法1*/
+
+.wrapper1{
+    float: left;
+    height: 400px;
+    width: 400px;
+    background: #f00;
+    position: relative;
+    overflow: hidden;
+    margin: 10px;
+    .inner1{
+        height: 200px;
+        width: 200px;
+        background-color: #fff;
+
+        /*core*/
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin-top: -100px;
+        margin-left: -100px;
+    }
+}
+
+
+// .wrapper{
+//     width: 100%;
+//     overflow:hidden;
+//     height:800px;
+//     background-color: #a0a0a0;
+//     .inner{
+//         width: 100px;
+//         background-color: #fff;
+//         height:50%;
+//         margin:25% 0%;
+//     }
+// }
+
+
+.wrapper2{
+    height: 400px;
+    width: 400px;
+    background: #f00;
+    margin: 10px;
+
+    /*core*/
+    display: flex;
+    align-items: center;//内部块元素垂直居中
+    justify-content: center;//内部块元素水平居中
+    .inner2{
+        height: 200px;
+        width: 200px;
+        background-color: #fff;
+    }
+}
+
+
+.wrapper3{
+    height: 400px;
+    width: 400px;
+    background: #456321;
+    margin: 10px;
+    float: left;
+    text-align:center;
+    span{
+        display: inline-block;
+        vertical-align: middle;
+        content: '';
+        height: 100%;
+    }
+    .inner3{
+        width: 200px;
+        background-color: #fff;
+        // margin: 0px auto;
+
+        /*core*/
+        max-width: 100%;
+        display: inline-block;
+        vertical-align: middle;
+    }
+}
+
+
+
+.box{//float+bfc
+    overflow:hidden;
+
+    .bl0{
+        float:left;
+        width: 200px;//可删除
+        background-color: #e3e3e3;//可删除
+    }
+    .br0{//overflow非visible触发BFC
+        overflow:hidden;
+        background-color: #a0a0a0;//可删除
+        // margin-left: 200px;
+    }
+    .br0:after{//清除浮动
+        content:"";
+        clear:both;
+    }
+}
+
+
+.box{//float+margin-left
+    overflow:hidden;
+
+    .bl{
+        float:left;
+        width: 200px;
+
+        background-color: #e3e3e3;//可删除
+    }
+    .br{
+        margin-left: 200px;
+
+        background-color: #a0a0a0;//可删除
+    }
+}
+
+.box{//absolute+width;和margin-left:缺点是右侧高度必须高于左侧，否则出问题
+    position:relative;
+    .bl1{
+        position: absolute;
+        width: 200px;
+        background-color: #e3e3e3;//可删除
+    }
+    .br1{
+        // height:300px;
+        margin-left: 200px;
+        height:200px;
+        clear: both;
+        background-color: #a0a0a0;//可删除
+    }
+}
+
+
+.box2{//flex
+    display:flex;
+    .bl2{
+        width: 200px;
+        background-color: #e3e3e3;//可删除
+    }
+    .br2{
+        flex-grow:1;
+        background-color: #a0a0a0;//可删除
+    }
+}
+
+
+/******************两边固定中间自适应**********************/
+.content{
+    position: relative;
+    .left-content{
+        background-color: #a0a0a0;
+        position:absolute;
+        left: 0px;
+        top: 0px;
+        width:100px;
+    }
+    .right-content{
+        background-color: #a0a0a0;
+        position:absolute;
+        right: 0px;
+        top: 0px;
+        width:100px;
+    }
+    .center-content{
+        background-color: #e3e3e3;
+        margin:0px 100px;
+    }
+}
+
+.content1{
+    .left-content1{
+        background-color: #a0a0a0;
+        float: left;
+        width:100px;
+    }
+    .right-content1{
+        background-color: #a0a0a0;
+        float: right;
+        width:100px;
+    }
+    .center-content1{
+        margin:0px 200px;
+        background-color: #e3e3e3;
+    }
+}

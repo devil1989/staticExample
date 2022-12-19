@@ -1,0 +1,170 @@
+.article-editor-wrapper{
+    
+    .ql-editor{
+        min-height: 420px;
+        max-height: 640px;
+        padding:15px 18px;
+        h1{
+            color:#000;
+        }
+        
+    }
+    .ql-container{
+        img{
+            max-width: 90%;
+        }
+
+    }
+
+    .quill-editor {
+        .ql-toolbar{
+            line-height:24px;
+        }
+        .ql-formats{
+            position:relative;
+            .ql-image:hover::before, .ql-clean:hover::before, .ql-background.ql-picker.ql-color-picker:hover::before,
+            .ql-color.ql-picker.ql-color-picker:hover::before,.ql-align.ql-picker.ql-icon-picker:hover::before,
+            .ql-size.ql-picker:hover::before,.ql-direction:hover::before,.ql-indent:hover::before,.ql-list:hover::before,
+            .ql-header:hover::before,.ql-code-block:hover::before,.ql-blockquote:hover::before,
+            .ql-strike:hover::before,.ql-underline:hover::before,.ql-italic:hover::before,
+            .ql-bold:hover::before
+            {
+                display: inline-block;
+                width:100px;
+                height:30px;
+                text-align: center;
+                line-height: 30px;
+                border:1px solid #e3e3e3;
+                border-radius:5px;
+                background-color: #fff;
+                color: #000;
+                position: absolute;
+                top: -32px;
+                left:0px;
+                color: #000;
+                z-index:100;
+            }
+            .ql-image:hover::before{
+                content:"插入图片";
+            }
+            .ql-clean:hover::before{
+                content:"清除格式";
+            }
+            .ql-align.ql-picker.ql-icon-picker:hover::before{
+                content:"对齐方式";
+            }
+            .ql-color.ql-picker.ql-color-picker:hover::before{
+                content:"文字颜色";
+            }
+            .ql-background.ql-picker.ql-color-picker:hover::before{
+                content:"背景颜色";
+            }
+            
+            .ql-size.ql-picker:hover::before{
+                content:"文字大小";
+            }
+            .ql-direction:hover::before{
+                content:"靠边对齐";
+            }
+            .ql-indent:hover:first-child::before{
+                content:"向左平移";
+            }
+            .ql-indent:hover:last-child::before{
+                content:"向右平移";
+            }
+            .ql-list:hover:first-child::before{
+                content:"有序列表";
+            }
+            .ql-list:hover:last-child::before{
+                content:"无序列表";
+            }
+            .ql-header:hover:first-child::before{
+                content:"H1标题";
+            }
+            .ql-header:hover:last-child::before{
+                content:"H2标题";
+            }
+            .ql-code-block:hover::before{
+                content:"行内代码";
+            }
+            .ql-blockquote:hover::before{
+                content:"引用";
+            }
+            .ql-strike:hover::before{
+                content:"删除线";
+            }
+            .ql-underline:hover::before{
+                content:"下划线~ctrl+u";
+            }
+            .ql-italic:hover::before{
+                content:"斜体~ctrl+i";
+            }
+            .ql-bold:hover::before{
+                content:"加粗~ctrl+b";
+            }
+
+        }
+           
+        
+    }
+
+    .ant-drawer-wrapper-body{
+        height: auto;
+        overflow:hidden;
+    }
+
+
+
+}
+
+
+//标签相关css
+.article-display-tag{
+    min-height:90px;
+    position:relative;
+    .tag-close{
+        font-style: normal;
+        position:absolute;
+        line-height: 20px;
+        font-size: 16px;
+        top: 0px;
+        right: 4px;
+        cursor: pointer;
+    }
+    .tag-close:hover{
+        color: orange;
+    }
+    .addTagBtn{
+        color:#1369bf;
+    }
+    .addTagBtn:hover{
+        cursor: pointer;
+        color:orange;
+    }
+}
+.article-display-tag>.personal-tag{
+    position:relative;
+    padding: 0px 30px 0px 10px;
+    margin-right: 10px;
+    float: left;
+    box-sizing: border-box;
+    color: rgba(0, 0, 0, 0.65);
+
+    font-size: 14px;
+    font-variant: tabular-nums;
+    line-height: 1.5;
+    list-style: none;
+    -moz-font-feature-settings: 'tnum';
+    font-feature-settings: 'tnum';
+    display: inline-block;
+    height: auto;
+    white-space: nowrap;
+    background: #fafafa;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    cursor: default;
+    transition: all 0.3s cubic-bezier(0.78, 0.14, 0.15, 0.86);
+}
+.personal-tag:hover{
+    color: rgba(0, 0, 0, 0.65);
+}

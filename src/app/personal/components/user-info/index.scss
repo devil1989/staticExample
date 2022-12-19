@@ -1,0 +1,148 @@
+//内容列表
+.user-info-wrapper{
+    .avatar-uploader > .ant-upload {
+      width: 128px;
+      height: 128px;
+    }
+    .ant-upload-select-picture-card i {
+      font-size: 32px;
+      color: #999;
+    }
+
+    .ant-upload-select-picture-card .ant-upload-text {
+      margin-top: -10px;
+      color: #666;
+    }
+    .plus_icon{
+      font-size: 44px;
+      color: #A0A0A0;
+    }
+    .user-img-wrapper{
+      height: 100%;
+      position:relative;
+      .modify-img-des{
+        display:none;
+      }
+      .user-img-content{
+        max-width:110px;
+        max-height: 110px;
+      }
+    }
+    .user-img-wrapper:hover {
+      opacity: 0.8;
+      .modify-img-des{
+        color:#000;
+        display:block;
+        position:absolute;
+        top:50%;left:50%;
+        margin-top:-15px;
+        margin-left:-30px;
+      }
+    }
+    .user-info-footer{
+      border-top:1px solid #e3e3e3;
+      margin-top: 10px;
+      padding-top: 10px;
+    }
+}
+.ant-upload-disabled .user-img-wrapper:hover .modify-img-des{
+  display:none;
+}
+
+.user-img-editor-wrapper{
+  .ant-modal-body{
+    padding-top: 0px !important;
+    text-align: center;
+  }
+  .preview-img{
+    position:relative;
+    margin:20px auto 0px;
+    canvas{
+      top: 0px;
+      left: 0px;
+      position:absolute;
+      z-index:30;
+    }
+    .cut-master{
+      height:100%;
+      width: 100%;
+      position:absolute;
+      top: 0px;
+      left: 0px;
+      background: #000;
+      opacity: 0.5;
+      z-index: 10;
+    }
+  }
+  //modal展示太慢，因为动画的原因，把动画时间设置为0即可
+  .fade-enter,.fade-appear,.fade-leave,.zoom-enter,.zoom-appear,.zoom-leave  {
+    -webkit-animation-duration: 0s;
+            animation-duration: 0s;
+  }
+}
+
+.ant-input-number-disabled .ant-input-number-input-wrap input{
+  color:#a0a0a0;
+}
+
+.anticon-up:after{
+  content:"+";
+  font-size:20px;
+}
+.anticon-down:after{
+  content:"-";
+  font-size:20px;
+}
+.ant-checkbox-checked::after{
+  border:none;
+}
+//动画基本都在这里，可以ant的node_modules中全局搜索fade或animation-duration，查看所有动画和对应的时间
+// .fade-enter.fade-enter-active,
+// .fade-appear.fade-appear-active {
+//   -webkit-animation-name: none !important;
+//           animation-name: none !important;
+// }
+// .fade-leave.fade-leave-active {
+//   -webkit-animation-name: none !important;
+//           animation-name: none !important;
+// }
+// .fade-enter,
+// .fade-appear {
+//   opacity: 0;
+//   -webkit-animation-timing-function: linear;
+//           animation-timing-function: linear;
+// }
+// .fade-leave {
+//   -webkit-animation-timing-function: linear;
+//           animation-timing-function: linear;
+// }
+
+// .ant-notification-topLeft .ant-notification-fade-enter.ant-notification-fade-enter-active,
+// .ant-notification-bottomLeft .ant-notification-fade-enter.ant-notification-fade-enter-active,
+// .ant-notification-topLeft .ant-notification-fade-appear.ant-notification-fade-appear-active,
+// .ant-notification-bottomLeft .ant-notification-fade-appear.ant-notification-fade-appear-active {
+//   -webkit-animation-name: none !important;
+//           animation-name: none !important;
+// }
+
+// .ant-notification-fade-enter.ant-notification-fade-enter-active,
+// .ant-notification-fade-appear.ant-notification-fade-appear-active {
+//   -webkit-animation-name: none !important;
+//           animation-name: none !important;
+// }
+// .ant-notification-fade-leave.ant-notification-fade-leave-active {
+//   -webkit-animation-name: none !important;
+//           animation-name: none !important;
+// }
+
+
+// .zoom-enter.zoom-enter-active,
+// .zoom-appear.zoom-appear-active {
+//   -webkit-animation-name: none !important;
+//           animation-name: none !important;
+// }
+// .zoom-leave.zoom-leave-active {
+//   -webkit-animation-name: none !important;
+//           animation-name: none !important;
+// }
+  
